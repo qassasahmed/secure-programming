@@ -64,7 +64,8 @@ By the end of this session students will be able to:
 
 - Tip: Always append path.sep when comparing prefixes to avoid false positives (e.g., /app/user_files_malicious).
 
-> [!NOTE] Note: You can also use `fs.promises.readFile` with `async/await` and `try/catch` for non‑blocking I/O.
+> [!NOTE]
+> Note: You can also use `fs.promises.readFile` with `async/await` and `try/catch` for non‑blocking I/O.
 
 2. **Secure Delete Endpoint**
    - Resolve the user-supplied path and ensure it begins with `path.resolve(__dirname, 'user_files')`.
