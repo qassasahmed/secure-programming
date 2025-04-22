@@ -18,14 +18,21 @@ app.get('/', (req, res) => {
 // Weak error handling: no error handling for file reading
 app.get('/read-file', (req, res) => {
     const filename = req.query.filename;  // Get filename from query parameter
+    // fs.readFile(filename, 'utf8', (err, data) => {
+    //     if (err) {
+    //         res.status(500).send('Error reading file: ' + err.message);
+    //         return;
+    //     }
+    //     res.send(data);
+    // });
 
-    fs.readFile(filename, 'utf8', (err, data) => {
-        if (err) {
-            res.status(500).send('Error reading file: ' + err.message);
-            return;
-        }
+    try {
+        const data = fs.readFileSync(filename, 'utf8');
         res.send(data);
-    });
+    } catch (err) {
+        res.status(500).send('File Not Found! ' + '<a href="/">Try again</a>');
+        fs.appendFileSync('error.log', `Error reading file: ${err.message}\n`);
+    }
 });
 
 // Insecure file handling: no sanitization of file paths

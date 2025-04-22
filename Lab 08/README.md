@@ -31,41 +31,23 @@ By the end of this session students will be able to:
    - Return `400 Bad Request` for invalid input.
 
 ```JavaScript
-   app.get('/read-file', (req, res) => {
-  const filename = req.query.filename;
-  const allowedDir = path.resolve(__dirname, 'user_files');
-  const userPath = path.resolve(allowedDir, filename);
+    const allowedDirectory = path.join(__dirname, 'files'); // Define a whitelist directory
+    const filename = req.query.filename;  // Get filename from query parameter
+    const filePath = path.join(allowedDirectory, filename);
 
-  // Validate that the resolved path is within our allowed directory
-  if (!userPath.startsWith(allowedDir + path.sep)) {
-    return res.status(400).send('Invalid file path.');
-  }
+    // Validate that the resolved path is within the allowed directory
+    if (!filePath.startsWith(allowedDirectory)) {
+        res.status(400).send('Invalid file path.');
+        return;
 
-  // Read file with try/catch for synchronous error handling
-  try {
-    const data = fs.readFileSync(userPath, 'utf8');
-    res.status(200).send(data);
-  } catch (err) {
-    if (err.code === 'ENOENT') {
-      return res.status(404).send('File not found.');
+    try {
+        const data = fs.readFileSync(filename, 'utf8');
+        res.send(data);
+    } catch (err) {
+        res.status(500).send('File Not Found! ' + '<a href="/">Try again</a>');
+        fs.appendFileSync('error.log', `Error reading file: ${err.message}\n`);
     }
-    console.error('Read error:', err);
-    res.status(500).send('An internal error occurred.');
-  }
-});
 ```
-- Path Resolution & Whitelisting: `path.resolve(allowedDir, filename)` ensures any relative or absolute input is anchored inside user_files.
-
-- Directory Check: `startsWith(allowedDir + path.sep)` prevents traversal (e.g., ../secret.txt).
-
-- Synchronous Read with try/catch: Simplifies error handling.
-
-- Granular Errors: Distinguish ENOENT (404) vs. other errors (500).
-
-- Tip: Always append path.sep when comparing prefixes to avoid false positives (e.g., /app/user_files_malicious).
-
-> [!NOTE]
-> Note: You can also use `fs.promises.readFile` with `async/await` and `try/catch` for non‑blocking I/O.
 
 2. **Secure Delete Endpoint**
    - Resolve the user-supplied path and ensure it begins with `path.resolve(__dirname, 'user_files')`.
