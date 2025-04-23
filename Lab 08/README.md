@@ -1,3 +1,6 @@
+
+![alt text](image-1.png)
+  
 ## 1. Learning Objectives
 
 By the end of this session students will be able to:
@@ -28,38 +31,36 @@ By the end of this session students will be able to:
 1. **Secure Read Endpoint**
    - Wrap `fs.readFile` in `try/catch` or handle callback errors.
    - Validate `req.query.filename` against a whitelist directory.
-   - Return `400 Bad Request` for invalid input.
 
-```JavaScript
-    const allowedDirectory = path.join(__dirname, 'files'); // Define a whitelist directory
-    const filename = req.query.filename;  // Get filename from query parameter
-    const filePath = path.join(allowedDirectory, filename);
+```JS
+const allowedDirectory = path.join(__dirname, 'files'); // Define a whitelist directory
+const filename = req.query.filename;  // Get filename from query parameter
+const filePath = path.join(allowedDirectory, filename);
 
-    // Validate that the resolved path is within the allowed directory
-    if (!filePath.startsWith(allowedDirectory)) {
-        res.status(400).send('Invalid file path.');
-        return;
+// Validate that the resolved path is within the allowed directory
+if (!filePath.startsWith(allowedDirectory)){
+    res.status(400).send('Invalid file path.');
+    return;
+}
 
-    try {
-        const data = fs.readFileSync(filename, 'utf8');
-        res.send(data);
-    } catch (err) {
-        res.status(500).send('File Not Found! ' + '<a href="/">Try again</a>');
-        fs.appendFileSync('error.log', `Error reading file: ${err.message}\n`);
-    }
+try {
+    const data = fs.readFileSync(filename, 'utf8');
+    res.send(data);
+} catch (err) {
+    res.status(500).send('File Not Found! ' + '<a href="/">Try again</a>');
+    fs.appendFileSync('error.log', `Error reading file: ${err.message}\n`);
+} finally {
+    console.log(`Attempted to read file: ${filename}`);
+}
+
 ```
 
-2. **Secure Delete Endpoint**
-   - Resolve the user-supplied path and ensure it begins with `path.resolve(__dirname, 'user_files')`.
-   - Catch and handle `ENOENT` and permission errors separately.
+2. **Secure Upload Endpoint**
 
-3. **Secure Logging Endpoint**
-   - Use `fs.appendFileSync` inside `try/catch`.
-   - Sanitize or escape user data to avoid unexpected control characters.
 
 ---
 
-## 5. Further Reading & Resources
+## 3. Further Reading & Resources
 
 - OWASP File Handling Cheat Sheet: https://cheatsheetseries.owasp.org/cheatsheets/File_Handling_Cheat_Sheet.html
 - Node.js Security Best Practices: https://nodejs.org/en/docs/guides/security/

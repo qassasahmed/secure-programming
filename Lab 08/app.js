@@ -1,6 +1,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const multer = require('multer');
 const app = express();
 const port = 3000;
 
@@ -18,48 +19,39 @@ app.get('/', (req, res) => {
 // Weak error handling: no error handling for file reading
 app.get('/read-file', (req, res) => {
     const filename = req.query.filename;  // Get filename from query parameter
-    // fs.readFile(filename, 'utf8', (err, data) => {
-    //     if (err) {
-    //         res.status(500).send('Error reading file: ' + err.message);
-    //         return;
-    //     }
-    //     res.send(data);
-    // });
-
-    try {
-        const data = fs.readFileSync(filename, 'utf8');
+    fs.readFile(filename, 'utf8', (err, data) => {
+        if (err) {
+            res.status(500).send('Error reading file: ' + err.message);
+            return;
+        }
         res.send(data);
-    } catch (err) {
-        res.status(500).send('File Not Found! ' + '<a href="/">Try again</a>');
-        fs.appendFileSync('error.log', `Error reading file: ${err.message}\n`);
+    });
+
+});
+
+// Secure file upload handling
+
+// Configure multer for file uploads
+const upload = multer({
+    dest: 'uploads/', // Destination folder for uploaded files
+    fileFilter: (req, file, cb) => {
+        // Allow only image files
+        if (!file.mimetype.startsWith('image/')) {
+            return cb(new Error('Only image files are allowed'), false);
+        }
+        cb(null, true);
+    },
+    limits: { fileSize: 5 * 1024 * 1024 } // Limit file size to 5MB
+});
+
+// Route to handle file uploads
+app.post('/upload-file', upload.single('file'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).send('No file uploaded.');
     }
+    res.send(`File uploaded successfully: ${req.file.originalname}`);
 });
 
-// Insecure file handling: no sanitization of file paths
-app.post('/delete-file', (req, res) => {
-    const filename = req.body.filename;  // Get filename from body
-
-    fs.unlink(filename, (err) => {
-        if (err) {
-            res.status(500).send('Error deleting file: ' + err.message);
-            return;
-        }
-        res.send('File deleted.');
-    });
-});
-
-// Weak error handling in file appending: no exception handling or input validation
-app.post('/log', (req, res) => {
-    const userData = req.body.data;  // Get log data from body
-
-    fs.appendFile('log.txt', userData + '\n', (err) => {
-        if (err) {
-            res.status(500).send('Error appending to log file: ' + err.message);
-            return;
-        }
-        res.send('Log data appended.');
-    });
-});
 
 app.listen(port, () => {
     console.log(`Vulnerable app listening at http://localhost:${port}`);
